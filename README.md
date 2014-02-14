@@ -21,5 +21,7 @@ Yii CActiveRecord behavior to generate list data arrays.
  * @see ListDataBehavior
  * @property ListDataBehavior $listDataBehavior
  * @property-read array $listData
+ * @method array getListData($condition = array())
+ * @method array arrayListData($items)
  */
 ```

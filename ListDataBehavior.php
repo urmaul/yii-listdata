@@ -3,25 +3,6 @@
 /**
  * Behavior that adds getListData method.
  * @property-read array $listData
- * 
- * Simple attachment:
- * <code>
- * 'listDataBehavior' => array(
- *     'class' => 'ext.behaviors.ListDataBehavior',
- *     'idAttribute' => 'id',
- *     'labelAttribute' => 'name',
- *     'orderByLabel' => true,
- *     'useModels' => false,
- * ),
- * </code>
- * 
- * PhpDoc example:
- * <code>
- * @see ListDataBehavior
- * @property ListDataBehavior $listDataBehavior
- * @property-read array $listData
- * </code>
- * 
  */
 class ListDataBehavior extends CActiveRecordBehavior
 {
