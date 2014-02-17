@@ -27,39 +27,61 @@ class ListDataBehavior extends CActiveRecordBehavior
     
 	/**
 	 * @param CDbCriteria|array $criteria
+     * @param string $labelAttribute label attribute name.
+     * Defaults to {@link $labelAttribute}
 	 * @return array id => name
 	 */
-	public function getListData($condition = array())
+	public function getListData($condition = array(), $labelAttribute = null)
 	{
-        $owner = $this->getOwner();
-	    $key = get_class($owner);
+        if ($labelAttribute === null)
+            $labelAttribute = $this->labelAttribute;
         
-        if (!isset(self::$_listData[$key])) {
-            if (is_object($condition))
-                $condition = $condition->toArray();
-            
+        $owner = $this->getOwner();
+        /* @var $owner CActiveRecord */
+	    $key = get_class($owner) . '-' . $labelAttribute;
+        
+        if (isset(self::$_listData[$key]))
+            return self::$_listData[$key];
+        
+        if (is_object($condition))
+            $criteria = clone $condition;
+        else
             $criteria = new CDbCriteria($condition);
-            $ownerCriteria = $owner->getDbCriteria(false);
-            if ($ownerCriteria)
-                $criteria->mergeWith($ownerCriteria);
-            
-            $items = $this->_findItems($criteria);
-            self::$_listData[$key] = $this->arrayListData($items);
-	    }
-	    
-	    return self::$_listData[$key];
+        
+        $ownerCriteria = $owner->getDbCriteria(false);
+        if ($ownerCriteria)
+            $criteria->mergeWith($ownerCriteria);
+
+        $orderByLabel = 
+            $this->orderByLabel &&
+            isset($owner->getMetaData()->columns[$labelAttribute]);
+        if ($orderByLabel) {
+            if ($criteria->order)
+                $criteria->order .= ', ' . $labelAttribute;
+            else
+                $criteria->order = $labelAttribute;
+        }
+
+        $items = $this->_findItems($criteria);
+        $listData = $this->arrayListData($items, $labelAttribute);
+        
+        self::$_listData[$key] = $listData;
+	    return $listData;
 	}
     
 	/**
 	 * @param CActiveRecord[] $items
 	 * @return array id => name
 	 */
-	public function arrayListData($items)
+	public function arrayListData($items, $labelAttribute = null)
 	{
+        if ($labelAttribute === null)
+            $labelAttribute = $this->labelAttribute;
+        
         return CHtml::listData(
             $items,
             $this->idAttribute,
-            $this->labelAttribute
+            $labelAttribute
         );
 	}
     
@@ -70,13 +92,6 @@ class ListDataBehavior extends CActiveRecordBehavior
      */
     protected function _findItems($criteria)
     {
-        if ($this->orderByLabel) {
-            if ($criteria->order)
-                $criteria->order .= ', ' . $this->labelAttribute;
-            else
-                $criteria->order = $this->labelAttribute;
-        }
-        
         if ($this->useModels)
             $items = $this->_findItemsUsingModels($criteria);
         else
@@ -92,7 +107,7 @@ class ListDataBehavior extends CActiveRecordBehavior
      */
     protected function _findItemsUsingModels($criteria)
     {
-        return $this->owner->findAll($criteria);
+        return $this->owner->resetScope()->findAll($criteria);
     }
     
     /**
