@@ -48,10 +48,11 @@ class ListDataBehavior extends CActiveRecordBehavior
             $this->orderByLabel &&
             isset($owner->getMetaData()->columns[$labelAttribute]);
         if ($orderByLabel) {
+            $order = $owner->getTableAlias() . '.' . $labelAttribute;
             if ($criteria->order)
-                $criteria->order .= ', ' . $labelAttribute;
+                $criteria->order .= ', ' . $order;
             else
-                $criteria->order = $labelAttribute;
+                $criteria->order = $order;
         }
 
         $items = $this->_findItems($criteria);
@@ -109,13 +110,14 @@ class ListDataBehavior extends CActiveRecordBehavior
     protected function _findItemsUsingQuery($criteria)
     {
         $owner = $this->getOwner();
-	    
+	    /* @var $owner CActiveRecord */
+        
         $command = $owner->getDbConnection()->createCommand();
         /* @var $command CDbCommand */
         
         $command
             ->select(array($this->idAttribute, $this->labelAttribute))
-            ->from($owner->tableName() . ' ' . $criteria->alias);
+            ->from($owner->tableName() . ' ' . $owner->getTableAlias());
         
         $command->where  = $criteria->condition;
         $command->order  = $criteria->order;
