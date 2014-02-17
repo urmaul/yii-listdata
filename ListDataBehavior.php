@@ -31,7 +31,7 @@ class ListDataBehavior extends CActiveRecordBehavior
 	 */
 	public function getListData($condition = array())
 	{
-        $owner = $this->owner;
+        $owner = $this->getOwner();
 	    $key = get_class($owner);
         
         if (!isset(self::$_listData[$key])) {
@@ -43,7 +43,8 @@ class ListDataBehavior extends CActiveRecordBehavior
             if ($ownerCriteria)
                 $criteria->mergeWith($ownerCriteria);
             
-            self::$_listData[$key] = $this->_findListData($criteria);
+            $items = $this->_findItems($criteria);
+            self::$_listData[$key] = $this->arrayListData($items);
 	    }
 	    
 	    return self::$_listData[$key];
@@ -67,7 +68,7 @@ class ListDataBehavior extends CActiveRecordBehavior
      * @param CDbCriteria $criteria
      * @return array
      */
-    protected function _findListData($criteria)
+    protected function _findItems($criteria)
     {
         if ($this->orderByLabel) {
             if ($criteria->order)
@@ -76,15 +77,20 @@ class ListDataBehavior extends CActiveRecordBehavior
                 $criteria->order = $this->labelAttribute;
         }
         
-        if ( $this->useModels )
-            $items = $this->_findListDataUsingModels($criteria);
+        if ($this->useModels)
+            $items = $this->_findItemsUsingModels($criteria);
         else
-            $items = $this->_findListDataUsingQuery($criteria);
+            $items = $this->_findItemsUsingQuery($criteria);
         
-        return $this->arrayListData($items);
+        return $items;
     }
     
-    protected function _findListDataUsingModels($criteria)
+    /**
+     * 
+     * @param CDbCriteria $criteria
+     * @return CActiveRecord[]
+     */
+    protected function _findItemsUsingModels($criteria)
     {
         return $this->owner->findAll($criteria);
     }
@@ -94,14 +100,16 @@ class ListDataBehavior extends CActiveRecordBehavior
      * @param CDbCriteria $criteria
      * @return array
      */
-    protected function _findListDataUsingQuery($criteria)
+    protected function _findItemsUsingQuery($criteria)
     {
-        $command = $this->getOwner()->getDbConnection()->createCommand();
+        $owner = $this->getOwner();
+	    
+        $command = $owner->getDbConnection()->createCommand();
         /* @var $command CDbCommand */
         
         $command
             ->select(array($this->idAttribute, $this->labelAttribute))
-            ->from($this->owner->tableName() . ' ' . $criteria->alias);
+            ->from($owner->tableName() . ' ' . $criteria->alias);
         
         $command->where  = $criteria->condition;
         $command->order  = $criteria->order;
