@@ -14,17 +14,13 @@ class ListDataBehavior extends CActiveRecordBehavior
      * @var boolean
      */
     public $orderByLabel = true;
+    
     /**
      * @var boolean
      */
     public $useModels = false;
 
 
-    /**
-     * @var array list data cache
-     */
-    private static $_listData = array();
-    
 	/**
 	 * @param CDbCriteria|array $criteria
      * @param string $labelAttribute label attribute name.
@@ -38,10 +34,6 @@ class ListDataBehavior extends CActiveRecordBehavior
         
         $owner = $this->getOwner();
         /* @var $owner CActiveRecord */
-	    $key = get_class($owner) . '-' . $labelAttribute;
-        
-        if (isset(self::$_listData[$key]))
-            return self::$_listData[$key];
         
         if (is_object($condition))
             $criteria = clone $condition;
@@ -65,7 +57,6 @@ class ListDataBehavior extends CActiveRecordBehavior
         $items = $this->_findItems($criteria);
         $listData = $this->arrayListData($items, $labelAttribute);
         
-        self::$_listData[$key] = $listData;
 	    return $listData;
 	}
     
