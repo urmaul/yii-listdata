@@ -6,7 +6,7 @@ Yii CActiveRecord behavior to generate list data arrays.
 
 ```php
 'listDataBehavior' => array(
-    'class' => 'ext.behaviors.ListDataBehavior',
+    'class' => 'ext.behaviors.listdata.ListDataBehavior',
     'idAttribute' => 'id',
     'labelAttribute' => 'name',
     'orderByLabel' => true,
